@@ -7,20 +7,22 @@ Bitcredits WooCommerce Plugin
 Installation
 ======================
 
-Step 1: Upload the directory to the following location: {wordpress location}/wp-content/plugins
+* Download the plugin from here: https://github.com/Bitcredits/bitcredits-woocommerce/archive/master.zip
 
-Step 2: Log in to your admin panel ( http://your-wordpress-site.com/wp-admin )
+* Unzip the file to your {wordpress location}/wp-content/plugins
 
-Step 3: Go to Plugins
+* Log in to your admin panel ( http://your-wordpress-site.com/wp-admin )
 
-Step 4: Under "Bitcredits Woocommerce", click "Activate"
+* Go to Plugins
 
-Step 5: Go to Woocommerce/Settings
+* Under "Bitcredits Woocommerce", click "Activate"
 
-Step 6: Go to the "checkout" tab
+* Go to Woocommerce/Settings
 
-Step 7: Click "Bitcredits"
+* Go to the "checkout" tab
 
-Step 8: Enter your API Key
+* Click "Bitcredits"
 
-Step 9: Click "Save"
+* Enter your API Key
+
+* Click "Save"
