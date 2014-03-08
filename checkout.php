@@ -1,11 +1,11 @@
 <?php
 /*
 Plugin Name: Bitcredits Woocommerce
-Plugin URI: http://www.bitcredits.com
-Description: This plugin adds the Bitcredits payment gateway to your Woocommerce plugin.  Woocommerce is required.
+Plugin URI: http://bitcredits.io
+Description: This plugin adds the Bitcredits Bitcoin payment gateway to your WooCommerce shopping cart.  WooCommerce is required.
 Version: 1.0
 Author: Bitcredits Core Team
-Author URI: http://www.bitcredits.io
+Author URI: http://bitcredits.io
 License: MIT
 */
 
@@ -82,7 +82,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			public function admin_options() {
 				?>
 				<h3><?php _e('Bitcoin Payment', 'woothemes'); ?></h3>
-				<p><?php _e('Allows bitcoin payments via bitcredits.io', 'woothemes'); ?></p>
+				<p><?php _e('Allows bitcoin payments via Bitcredits.io', 'woothemes'); ?></p>
 				<table class="form-table">
 				<?php $this->generate_settings_html(); ?>
 				</table>
@@ -94,18 +94,20 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 				<div id="bitcredits-payment-box">Loading...</div>
 				<script type="text/javascript">
 				//<![CDATA[
-				if (document.getElementById("BitC") == null) {
-					var bitc=document.createElement('script');
-					bitc.type='text/javascript';
-					bitc.setAttribute("id", "BitC");
-					bitc.src = '<?php echo $this->get_option( 'api_endpoint' ); ?>/v1/bitcredits.js';
-					var s=document.getElementsByTagName('script')[0];
-					s.parentNode.insertBefore(bitc,s);
-				}
-				window.BitCredits = window.BitCredits || [];
-				window.BitCredits.push(['onConfigReady', function(){
-					window.BitCredits.push(['setupWoocommerce', <?php echo self::$amount; ?>]);
-				}]);
+				(function(){
+					if (document.getElementById("BitC") == null) {
+						var bitc=document.createElement('script');
+						bitc.type='text/javascript';
+						bitc.setAttribute("id", "BitC");
+						bitc.src = '<?php echo $this->get_option( 'api_endpoint' ); ?>/v1/bitcredits.js';
+						var s=document.getElementsByTagName('script')[0];
+						s.parentNode.insertBefore(bitc,s);
+					}
+					window.BitCredits = window.BitCredits || [];
+					window.BitCredits.push(['onConfigReady', function(){
+						window.BitCredits.push(['setupWoocommerce', <?php echo self::$amount; ?>]);
+					}]);
+				}());
 				//]]>
 				</script>
 				<?php
@@ -117,53 +119,51 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 				$order = new WC_Order( $order_id );
 				$key = $this->get_option( 'api_key' );
-		        $endpoint = $this->get_option( 'api_endpoint' );
+		        	$endpoint = $this->get_option( 'api_endpoint' );
 
-		        if(!isset($_COOKIE['bitc'])){
-		        	$woocommerce->add_error(__('Could not place order.'));
-		        	return;
-		        }
+			        if (!isset($_COOKIE['bitc'])){
+			        	$woocommerce->add_error(__('Could not place order.'));
+			        	return;
+			        }
 
-		        $method = '/v1/transactions';
-		        $data = array(
-		            'api_key' => $key,
-		            'src_token' => $_COOKIE['bitc'],
-		            'dst_account' => '/woocommerce/orders/'.$order->get_order_number(),
-		            'dst_account_create' => true,
-		            'amount' => $order->get_total(),
-		            'data' => array(
-		                'email' => $order->billing_email,
-		                'firstname' => $order->billing_first_name,
-		                'lastname' => $order->billing_last_name,
-		                'order_id' => $order->get_order_number()
-		            )
-		        );
+			        $method = '/v1/transactions';
+			        $data = array(
+			            'api_key' => $key,
+			            'src_token' => $_COOKIE['bitc'],
+			            'dst_account' => '/woocommerce/orders/'.$order->get_order_number(),
+			            'dst_account_create' => true,
+			            'amount' => $order->get_total(),
+			            'data' => array(
+			                'email' => $order->billing_email,
+			                'firstname' => $order->billing_first_name,
+			                'lastname' => $order->billing_last_name,
+			                'order_id' => $order->get_order_number()
+			            )
+			        );
 		        
-		        $ch = curl_init();
-		        $data_string = json_encode($data);
-		        curl_setopt($ch, CURLOPT_URL, $endpoint . $method);
-		        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
-		        curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
-		        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Content-Length: ' . strlen($data_string)));
-		        $result = curl_exec($ch);
-		        $res = json_decode($result, true);
+			        $ch = curl_init();
+			        $data_string = json_encode($data);
+			        curl_setopt($ch, CURLOPT_URL, $endpoint . $method);
+			        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+			        curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
+			        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Content-Length: ' . strlen($data_string)));
+			        $result = curl_exec($ch);
+			        $res = json_decode($result, true);
 
-		        if(
-		            $res == null
-		         || !isset($res['status'])
-		        ){
-		            $woocommerce->add_error(__('Transaction not completed.'));
-		            return;
-		        }elseif($res['status'] == 'error'){
-		            if(isset($res['message'])){
-		                $woocommerce->add_error(__('Error while processing payment: ').$res['message']);
-		                return;
-		            }else{
-		                $woocommerce->add_error(__('Transaction not completed. No error message was provided.'));
-		                return;
-		            }
-		        }
+			        if ($res == null
+			         || !isset($res['status'])) {
+			            $woocommerce->add_error(__('Transaction not completed.'));
+			            return;
+			        } elseif ($res['status'] == 'error') {
+			            if (isset($res['message'])) {
+			                $woocommerce->add_error(__('Error while processing payment: ').$res['message']);
+			                return;
+			            } else {
+			                $woocommerce->add_error(__('Transaction not completed. No error message was provided.'));
+			                return;
+			            }
+			        }
 
 				$order->payment_complete();
 
