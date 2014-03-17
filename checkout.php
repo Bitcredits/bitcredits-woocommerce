@@ -90,6 +90,8 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			}
 			
 			function payment_fields() {
+				get_currentuserinfo();
+				global $current_user;
 				?>
 				<div id="bitcredits-payment-box">Loading...</div>
 				<script type="text/javascript">
@@ -105,7 +107,9 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 					}
 					window.BitCredits = window.BitCredits || [];
 					window.BitCredits.push(['onConfigReady', function(){
-						window.BitCredits.push(['setupWoocommerce', <?php echo self::$amount; ?>]);
+						window.BitCredits.push(['setupWoocommerce', <?php echo self::$amount; ?>, <?php echo json_encode(array(
+							'email' => $current_user->user_email
+						)); ?>]);
 					}]);
 				}());
 				//]]>
